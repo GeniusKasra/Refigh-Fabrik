@@ -1,11 +1,131 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
-buildscript {
-    repositories {
-        jcenter()
-        mavenCentral()
+apply plugin: 'com.android.application'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    compile.exclude module: 'support-v4'
+}
+
+dependencies {
+    compile 'com.google.android.gms:play-services-gcm:9.6.1'
+    compile 'com.google.android.gms:play-services-maps:9.6.1'
+    compile 'com.google.android.gms:play-services-vision:9.6.1'
+    compile 'com.android.support:support-core-ui:24.2.1'
+    compile 'com.android.support:support-compat:24.2.1'
+    compile 'com.android.support:support-core-utils:24.2.1'
+    compile 'net.hockeyapp.android:HockeySDK:4.0.1'
+    compile 'com.googlecode.mp4parser:isoparser:1.0.6'
+}
+
+android {
+    compileSdkVersion 24
+    buildToolsVersion '24.0.2'
+
+    useLibrary 'org.apache.http.legacy'
+    defaultConfig.applicationId = "org.telegram.messenger"
+
+    sourceSets.main.jniLibs.srcDirs = ['./jni/']
+
+    externalNativeBuild {
+        ndkBuild {
+            path "jni/Android.mk"
+        }
     }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:2.2.2'
-        classpath 'com.google.gms:google-services:3.0.0'
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_7
+        targetCompatibility JavaVersion.VERSION_1_7
+    }
+
+    signingConfigs {
+        debug {
+            storeFile file("config/release.keystore")
+            storePassword RELEASE_STORE_PASSWORD
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_PASSWORD
+            v2SigningEnabled false
+        }
+
+        release {
+            storeFile file("config/release.keystore")
+            storePassword RELEASE_STORE_PASSWORD
+            keyAlias RELEASE_KEY_ALIAS
+            keyPassword RELEASE_KEY_PASSWORD
+            v2SigningEnabled false
+        }
+    }
+
+    buildTypes {
+        debug {
+            debuggable true
+            jniDebuggable true
+            signingConfig signingConfigs.debug
+            applicationIdSuffix ".beta"
+        }
+
+        release {
+            debuggable false
+            jniDebuggable false
+            signingConfig signingConfigs.release
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+
+        foss {
+            debuggable false
+            jniDebuggable false
+            signingConfig signingConfigs.release
+        }
+    }
+
+    defaultConfig.versionCode = 851
+
+    sourceSets.debug {
+        manifest.srcFile 'config/debug/AndroidManifest.xml'
+    }
+
+    sourceSets.release {
+        manifest.srcFile 'config/release/AndroidManifest.xml'
+    }
+
+    sourceSets.foss {
+        manifest.srcFile 'config/foss/AndroidManifest.xml'
+    }
+
+    productFlavors {
+        x86 {
+            ndk {
+                abiFilter "x86"
+            }
+            versionCode = 2
+        }
+        armv7 {
+            ndk {
+                abiFilter "armeabi-v7a"
+            }
+            versionCode = 1
+        }
+        fat {
+            versionCode = 3
+        }
+    }
+
+    applicationVariants.all { variant ->
+        def abiVersion = variant.productFlavors.get(0).versionCode
+        variant.mergedFlavor.versionCode = defaultConfig.versionCode * 10 + abiVersion;
+    }
+
+    defaultConfig {
+        applicationId "org.refighfabrik.messenger"
+        minSdkVersion 11
+        targetSdkVersion 23
+        versionCode 855
+        versionName "3.13.1"
+        signingConfig signingConfigs.release
+        multiDexEnabled true
     }
 }
+
+apply plugin: 'com.google.gms.google-services'
